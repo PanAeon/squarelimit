@@ -9,6 +9,7 @@ import Diagrams.Backend.SVG.CmdLine
 import Diagrams.Backend.SVG(loadImageSVG)
 import System.IO.Unsafe
 
+import qualified LimitExample
 
 myCircle :: Diagram B
 myCircle = circle 1
@@ -62,7 +63,7 @@ theFish = unsafePerformIO $ loadImageSVG "fish2.png"
 -- (unitSquare  # fc orange ) <> 
 theFish' = --(unitSquare # dashingN [0.02] 0 ) <> 
            (( moveOriginBy (0.125 * unitX) (scaleToY 1 $ scaleToX 1.5 theFish )) 
-              # rectEnvelope (p2 (-0.75,-0.5)) (r2 (1.25, 1.0)) {- # showOrigin -})
+              # rectEnvelope (p2 (-0.75,-0.5)) (r2 (1.25, 1.0)) {- -})  # showOrigin
              -- # clipBy (rect 1.25 1.0 # moveOriginBy (0.125 * unitX)) # showOrigin)
 clipToUnit = rectEnvelope (p2 (-0.5,-0.5)) (r2 (1.0, 1.0))
 twoFishes =  (( turn' . turn') theFish') <> ( theFish')
@@ -72,7 +73,7 @@ ttile f =    (f <> (fishN <> fishE) )
     fishN = f # toss # flip'
     fishE = fishN # turn' # turn' # turn' 
 
-utile f =    (centerXY $ (fishN <> fishW) <> (fishE <> fishS)) 
+utile f =    ( (fishN <> fishW) <> (fishE <> fishS)) 
   where
 
    fishN = f # toss # flip'
@@ -83,11 +84,19 @@ utile f =    (centerXY $ (fishN <> fishW) <> (fishE <> fishS))
 -- henderson => h e n 
 --              d e r
 --              s o n
-nonet p q r s t u v w x = ( p `beside'` q `beside'` r ) 
-                              `above'`
-                          ( s `beside'` t `beside'` u ) 
-                              `above'`
-                          ( v `beside'` w `beside'` x )       
+-- scale 1/6?
+nonet p q r s t u v w x = scale (1/3) $ position $ zip 
+                          ( p2 <$> [(-1, 1), (0, 1), (1, 1),
+                                    (-1, 0), (0, 0), (1, 0),
+                                    (-1, -1), (0, -1), (1, -1)
+                                   ]) 
+                          [p, q, r, s, t, u, v, w, x]
+-- nonet p q r s t u v w x = ( p `beside'` q `beside'` r ) 
+--                               `above'`
+--                           ( s `beside'` t `beside'` u ) 
+--                               `above'`
+--                           ( v `beside'` w `beside'` x )       
+-- scaleY 0.5 $  position $ zip (map p2 [(0, -0.5), (0, 0.5)]) [b, a]
 
 --how to position to bounding box? (p ||| q)  === (r ||| s)
 quartet p q r s = (p `beside'` q) `above'` (r `beside'` s) 
@@ -127,11 +136,20 @@ limit n fish = nonet  cornerNW sideN cornerNE
 -- # showOrigin
 -- stack run  -- --selection circle -w 100 -h 100 -o output.svg && firefox output.svg
 
-above' a b = scaleY 0.5 $ position $ zip (map p2 [(0, -0.5), (0, 0.5)]) [b, a]
-beside' a b = (scaleX 0.5 $ position $ zip (map p2 [(-0.5, 0), (0.5, 0)]) [a, b])
+above' a b = scaleY 0.5 $  position $ zip (map p2 [(0, -0.5), (0, 0.5)]) [b, a]
+beside' a b = (scaleX 0.5 $  position $ zip (map p2 [(-0.5, 0), (0.5, 0)]) [a, b])
                    
-                    
+nonetTest = unitSquare <>  (nonet
+       (circle 1) (circle 1) (circle 1)
+       (circle 1) (circle 1) (circle 1)
+       (circle 1) (circle 1) (circle 1))
+  where
+    letter x = unitSquare <> (text x #scaleToX  (1.0) #scaleToY (1.0) #showOrigin )
 
+-- wow, it's working! and I'm not an idiot. 
+-- the only problem is that diagrams can't read svg files, it's not exactly my problem,
+-- but how hard is to add svg support if most of the primitives already working, 
+-- and actually are compiled into an svg by default??
 main :: IO ()
 main = multiMain [
           ("circle", myCircle)
@@ -142,11 +160,12 @@ main = multiMain [
         , ("toss", unitSquare <> toss (unitSquare <> letterF))
         , ("ttile", ttile theFish')
         , ("utile", square 1 <> utile theFish')
-        , ("nonet", nonet (text "h") (text "e") (text "n") (text "d") (utile theFish') (text "r") (text "s") (text "o") (text "n") # lw none)
+        , ("nonet", nonetTest)
         , ("side", side 2 (theFish'))
         , ("corner", corner 2 theFish')
         , ("above", square 1 <> above' theFish' theFish')
-        , ("limit", limit 3 theFish')
+        , ("limit", limit 2 theFish')
+        , ("example", LimitExample.example)
         ]
 
 

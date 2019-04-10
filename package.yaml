@@ -23,6 +23,7 @@ default-extensions:
   - LambdaCase
   - OverloadedStrings
   - FlexibleInstances
+  - FlexibleContexts
   - TypeApplications
   - RecordWildCards
   - ScopedTypeVariables
@@ -37,6 +38,7 @@ dependencies:
 - diagrams-lib
 - diagrams
 - diagrams-svg
+- svg-tree
 
 library:
   source-dirs: src
