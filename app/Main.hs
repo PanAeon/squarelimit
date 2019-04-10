@@ -150,6 +150,11 @@ nonetTest = unitSquare <>  (nonet
 -- the only problem is that diagrams can't read svg files, it's not exactly my problem,
 -- but how hard is to add svg support if most of the primitives already working, 
 -- and actually are compiled into an svg by default??
+-- TODO: outline !!
+
+triangle' = (fromOffsets $ (map r2
+  [(0.5, -0.5), (-1, 0), (0, 1), (0.5, -0.5)])) # strokeLine 
+
 main :: IO ()
 main = multiMain [
           ("circle", myCircle)
@@ -158,6 +163,8 @@ main = multiMain [
         , ("frotated1", foo)
         , ("twoFishes", twoFishes)
         , ("toss", unitSquare <> toss (unitSquare <> letterF))
+        , ("justFish", theFish')
+        , ("justTriangle",  (triangle') # showOrigin )
         , ("ttile", ttile theFish')
         , ("utile", square 1 <> utile theFish')
         , ("nonet", nonetTest)
@@ -166,6 +173,7 @@ main = multiMain [
         , ("above", square 1 <> above' theFish' theFish')
         , ("limit", limit 2 theFish')
         , ("example", LimitExample.example)
+        , ("triangle", limit 3 $ triangle')
         ]
 
 
