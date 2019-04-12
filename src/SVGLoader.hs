@@ -16,7 +16,7 @@ fishToDiagram :: Svg.Document -> Diagram B
 fishToDiagram doc = foldl' (\r a -> r <> drawElement a) emptyDiag (Svg.Types._elements doc)
 
 drawElement :: Svg.Tree -> Diagram B 
-drawElement (Svg.Types.PathTree (Svg.Path attrs definitions)) = drawSVGDefinitions definitions
+drawElement (Svg.Types.PathTree (Svg.Path attrs definitions)) = drawSVGPath definitions
 drawElement (Svg.Types.GroupTree (Svg.Group attrs children viewBox aspectRatio)) = 
              foldl' (\r a -> r <> drawElement a) emptyDiag children
 drawElement e = error $ "can't handle " <> (show e) <> "(yet)"
@@ -24,9 +24,18 @@ drawElement e = error $ "can't handle " <> (show e) <> "(yet)"
 -- renderSVG "meout.svg" (dims (r2 (800.0, 800.0))) (fishToDiagram svgFish)
 -- reverse engineer Diagram => SVG => Diagram?
 -- need to fold over the path
-drawSVGDefinitions :: [Svg.Types.PathCommand] -> Diagram B
-drawSVGDefinitions xs = emptyDiag
+drawSVGPath :: [Svg.Types.PathCommand] -> Diagram B
+drawSVGPath xs = strokePath $ resultingPath $ foldl' drawSVGPathCommand emptyPathContext xs
 
+
+data PathContext n = PathContext { 
+                      current :: (Point V2 n) 
+                    , resultingPath :: (Path V2 n)
+                    }
+emptyPathContext = PathContext (P $ r2 (0, 0)) mempty
+
+drawSVGPathCommand :: (OrderedField n) => PathContext n -> Svg.Types.PathCommand -> PathContext n
+drawSVGPathCommand = undefined
 
 {-
 
